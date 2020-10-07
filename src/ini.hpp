@@ -7,9 +7,10 @@
 #include <set>
 #include <string>
 
+#include "defines.hpp"
+
 /**
- * @brief Represents the different error types that could occur during `.ini`
- * file parsing.
+ * @brief The different types of errors that may occur.
  */
 enum class ErrorCode {
 	None,
@@ -44,10 +45,10 @@ struct Field {
 };
 
 /**
- * @brief Class that parses a `.ini` file and stores the name-value pairs
+ * @brief Class that reads a `.ini` file and stores the name-value pairs
  * for easy access.
  */
-class INIParser {
+class INIReader {
 
 private:
 
@@ -68,6 +69,12 @@ private:
 	std::set<const char *> m_sections;
 
 	/**
+	 * @brief Removes any trailing whitespace in place.
+	 * @param str The string to remove trailing whitespace from.
+	 */
+	void rstrip(std::string &str);
+
+	/**
 	 * @brief Parses the configuration file.
 	 * @param fileName The path of the file to parse.
 	 * @returns The code for any error that occurs during this process.
@@ -80,12 +87,12 @@ public:
 	 * @brief Initializes the parser to read from a file.
 	 * @param fileName The path of the file to read from.
 	 */
-	explicit INIParser(const char *fileName);
+	explicit INIReader(const char *fileName);
 
 	/**
 	 * @brief Destructor for the parser.
 	 */
-	~INIParser() = default;
+	~INIReader() = default;
 
 	/**
 	 * @brief Gets a string value from the configuration file.
