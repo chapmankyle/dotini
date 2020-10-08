@@ -61,7 +61,7 @@ private:
 	 * @brief Lookup table containing key-values pairs, where the key is the
 	 * name of the section and the values are the fields present in that section.
 	 */
-	std::map<const char *, std::set<Field>> m_section_fields;
+	std::map<const char *, std::set<Field>> m_lookup;
 
 	/**
 	 * @brief Names of all sections present in the given `.ini` file.
@@ -69,17 +69,10 @@ private:
 	std::set<const char *> m_sections;
 
 	/**
-	 * @brief Removes any trailing whitespace in place.
+	 * @brief Removes any trailing whitespace (in place).
 	 * @param str The string to remove trailing whitespace from.
 	 */
 	void rstrip(std::string &str);
-
-	/**
-	 * @brief Parses the configuration file.
-	 * @param fileName The path of the file to parse.
-	 * @returns The code for any error that occurs during this process.
-	 */
-	ErrorCode parseFile(const char *fileName);
 
 public:
 
@@ -87,7 +80,7 @@ public:
 	 * @brief Initializes the parser to read from a file.
 	 * @param fileName The path of the file to read from.
 	 */
-	explicit INIReader(const char *fileName);
+	INIReader(const char *fileName);
 
 	/**
 	 * @brief Destructor for the parser.
@@ -144,12 +137,16 @@ public:
 	 * @brief Gets the fields present in the given section.
 	 * @param section The name of the section to get the fields from.
 	 */
-	std::set<Field> getSectionFields(const char *section) const;
+	std::set<Field> getSectionFields(const char *section) const {
+		return m_lookup.at(section);
+	}
 
 	/**
 	 * @returns The sections present in the configuration file.
 	 */
-	std::set<const char *> getSections() const;
+	std::set<const char *> getSections() const {
+		return m_sections;
+	}
 
 };
 
