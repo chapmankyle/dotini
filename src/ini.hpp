@@ -15,6 +15,7 @@
 enum class ErrorCode {
 	None,
 	NoSuchFile,
+	NoClosingBracketForSection,
 	EmptySection,
 	NoValueForKey
 };
@@ -64,6 +65,11 @@ private:
 	bool m_in_section{ false };
 
 	/**
+	 * @brief The current section (used when `m_in_section` is true).
+	 */
+	std::string m_curr_section;
+
+	/**
 	 * @brief Keep track of any error that occurs during parsing.
 	 */
 	ErrorCode m_error{ ErrorCode::None };
@@ -72,12 +78,12 @@ private:
 	 * @brief Lookup table containing key-values pairs, where the key is the
 	 * name of the section and the values are the fields present in that section.
 	 */
-	std::map<const char *, std::set<Field>> m_lookup;
+	std::map<std::string, std::set<Field>> m_lookup;
 
 	/**
 	 * @brief Names of all sections present in the given `.ini` file.
 	 */
-	std::set<const char *> m_section_names;
+	std::set<std::string> m_section_names;
 
 	/**
 	 * @brief Removes any trailing whitespace (in place).
@@ -86,10 +92,51 @@ private:
 	void rstrip(std::string &str);
 
 	/**
+	 * @returns `true` if there are sections with no key-value pairs, `false`
+	 * otherwise.
+	 */
+	bool hasEmptySections();
+
+	/**
+	 * @brief Parses a section in a file.
+	 * @param str The string containing the section.
+	 * @returns `true` if no errors occurred, `false` otherwise.
+	 */
+	bool parseSection(const std::string &str);
+
+	/**
+	 * @brief Parses a key inside a section in a file.
+	 * @param str The string containing the key.
+	 * @returns `true` if no errors occurred, `false` otherwise.
+	 */
+	bool parseKey(const std::string &str);
+
+	/**
+	 * @brief Parses a section in a file.
+	 * @param str The string containing the section.
+	 * @returns `true` if no errors occurred, `false` otherwise.
+	 */
+	bool parseValue(const std::string &str);
+
+	/**
 	 * @brief Parses a line of the file.
 	 * @param str The current line in the file.
+	 * @returns `true` if no errors occurred, `false` otherwise.
 	 */
-	void parseLine(const std::string &str);
+	bool parseLine(const std::string &str);
+
+	/**
+	 * @brief Gets a string value from the configuration file.
+	 * @param section The name of the section to get the value from.
+	 * @param key The key associated with the value.
+	 * @param defValue The value to return if no such section or key is found.
+	 * @returns The associated value if `key` is found, else `defValue`.
+	 */
+	const std::string get(
+		const std::string &section,
+		const std::string &key,
+		const std::string &defValue
+	);
 
 public:
 
@@ -117,7 +164,11 @@ public:
 	 * @param defValue The value to return if no such section or key is found.
 	 * @returns The associated value if `key` is found, else `defValue`.
 	 */
-	const char *get(const char *section, const char *key, const char *defValue);
+	const std::string getString(
+		const std::string &section,
+		const std::string &key,
+		const std::string &defValue
+	);
 
 	/**
 	 * @brief Gets an integer value from the configuration file.
@@ -126,7 +177,11 @@ public:
 	 * @param defValue The value to return if no such section or key is found.
 	 * @returns The associated value if `key` is found, else `defValue`.
 	 */
-	int getInt(const char *section, const char *key, int defValue);
+	const int getInt(
+		const std::string &section,
+		const std::string &key,
+		int defValue
+	);
 
 	/**
 	 * @brief Gets a long value from the configuration file.
@@ -135,7 +190,11 @@ public:
 	 * @param defValue The value to return if no such section or key is found.
 	 * @returns The associated value if `key` is found, else `defValue`.
 	 */
-	long getLong(const char *section, const char *key, long defValue);
+	const long getLong(
+		const std::string &section,
+		const std::string &key,
+		long defValue
+	);
 
 	/**
 	 * @brief Gets a double-precision floating-point value from the
@@ -145,7 +204,11 @@ public:
 	 * @param defValue The value to return if no such section or key is found.
 	 * @returns The associated value if `key` is found, else `defValue`.
 	 */
-	double getDouble(const char *section, const char *key, double defValue);
+	const double getDouble(
+		const std::string &section,
+		const std::string &key,
+		double defValue
+	);
 
 	/**
 	 * @brief Gets a boolean value from the configuration file.
@@ -154,20 +217,24 @@ public:
 	 * @param defValue The value to return if no such section or key is found.
 	 * @returns The associated value if `key` is found, else `defValue`.
 	 */
-	bool getBool(const char *section, const char *key, bool defValue);
+	const bool getBool(
+		const std::string &section,
+		const std::string &key,
+		bool defValue
+	);
 
 	/**
 	 * @brief Gets the fields present in the given section.
 	 * @param section The name of the section to get the fields from.
 	 */
-	std::set<Field> getSectionFields(const char *section) const {
+	std::set<Field> getSectionFields(const std::string &section) const {
 		return m_lookup.at(section);
 	}
 
 	/**
 	 * @returns The names of the sections present in the configuration file.
 	 */
-	std::set<const char *> getSectionNames() const {
+	std::set<std::string> getSectionNames() const {
 		return m_section_names;
 	}
 
