@@ -21,6 +21,17 @@ enum class ErrorCode {
 };
 
 /**
+ * @brief String representations of the errors that can occur.
+ */
+static const std::string errorStrings[]{
+	"No error has occurred.",
+	"File does not exist.",
+	"No closing bracket found for section.",
+	"Section has no key-value pairs.",
+	"No value found for key."
+};
+
+/**
  * @brief Stores the key-value pair of a section entry in the file.
  */
 struct Field {
@@ -112,8 +123,8 @@ private:
 	bool parseKey(const std::string &str);
 
 	/**
-	 * @brief Parses a section in a file.
-	 * @param str The string containing the section.
+	 * @brief Parses a value inside a section in a file.
+	 * @param str The string containing the value.
 	 * @returns `true` if no errors occurred, `false` otherwise.
 	 */
 	bool parseValue(const std::string &str);
@@ -222,6 +233,13 @@ public:
 		const std::string &key,
 		bool defValue
 	);
+
+	/**
+	 * @returns A string representation of the error that occurred.
+	 */
+	const std::string getError() {
+		return errorStrings[static_cast<int>(m_error)];
+	}
 
 	/**
 	 * @brief Gets the fields present in the given section.
