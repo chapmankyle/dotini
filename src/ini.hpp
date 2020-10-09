@@ -17,6 +17,7 @@ enum class ErrorCode {
 	NoSuchFile,
 	NoClosingBracketForSection,
 	EmptySection,
+	KeyOutsideSection,
 	NoValueForKey
 };
 
@@ -28,6 +29,7 @@ static const std::string errorStrings[]{
 	"File does not exist.",
 	"No closing bracket found for section.",
 	"Section has no key-value pairs.",
+	"Key-value pair was found outside a section.",
 	"No value found for key."
 };
 
@@ -95,6 +97,12 @@ private:
 	 * @brief Names of all sections present in the given `.ini` file.
 	 */
 	std::set<std::string> m_section_names;
+
+	/**
+	 * @brief Removes any leading whitespace (in place).
+	 * @param str The string to remove leading whitespace from.
+	 */
+	void lstrip(std::string &str);
 
 	/**
 	 * @brief Removes any trailing whitespace (in place).
