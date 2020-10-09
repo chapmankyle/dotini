@@ -6,6 +6,11 @@
 #include <fstream>
 #include <regex>
 
+void INIReader::lstrip(std::string &str) {
+	str = std::regex_replace(str, std::regex("^ +"), "");
+}
+
+
 void INIReader::rstrip(std::string &str) {
 	str = std::regex_replace(str, std::regex(" +$"), "");
 }
@@ -56,6 +61,47 @@ bool INIReader::parseSection(const std::string &str) {
 }
 
 
+bool INIReader::parseKey(const std::string &str) {
+	// no key-value pair allowed outside section
+	if (!m_in_section) {
+		m_error = ErrorCode::KeyOutsideSection;
+		return false;
+	}
+
+	// copy initialize to not affect original string
+	std::string key = str;
+	rstrip(key);
+
+	std::cout << "(" << key << ",";
+	return true;
+}
+
+
+bool INIReader::parseValue(const std::string &str) {
+	// no key-value pair allowed outside section
+	if (!m_in_section) {
+		m_error = ErrorCode::KeyOutsideSection;
+		return false;
+	}
+
+	// copy initialize to not affect original string
+	std::string val = str;
+
+	// strip leading and trailing whitespace
+	lstrip(val);
+	rstrip(val);
+
+	// no corresponding value for defined key
+	if (val.empty()) {
+		m_error = ErrorCode::NoValueForKey;
+		return false;
+	}
+
+	std::cout << val << ")\n";
+	return true;
+}
+
+
 bool INIReader::parseLine(const std::string &str) {
 	// ignore newlines
 	if (str.length() < 1) {
@@ -74,36 +120,19 @@ bool INIReader::parseLine(const std::string &str) {
 		return parseSection(str);
 	}
 
+	const std::size_t assignIdx = str.find('=');
+
 	// check if assignment operator (=) exists
-	if (str.find('=') == std::string::npos) {
+	if (assignIdx == std::string::npos) {
 		m_error = ErrorCode::NoValueForKey;
 		return false;
 	}
 
-	bool foundAssignment{ false };
-
-	// keep track of key and value
-	std::string key;
-	std::string val;
-
 	std::cout << '[' << m_line_num << "]  ";
-	// iterate over every character
-	for (const char &c : str) {
-		if (c == '=') {
-			foundAssignment = true;
-			continue;
-		}
+	bool validKey = parseKey(str.substr(0, assignIdx));
+	bool validValue = parseValue(str.substr(assignIdx + 1, str.length() - assignIdx));
 
-		if (!foundAssignment) {
-			key.push_back(c);
-		} else {
-			std::cout << c;
-		}
-	}
-
-	rstrip(key);
-	std::cout << '|' << key << "|\n";
-	return true;
+	return validKey && validValue;
 }
 
 
