@@ -14,7 +14,8 @@
  */
 enum class ErrorCode {
 	None,
-	FileNotExists,
+	NoSuchFile,
+	EmptySection,
 	NoValueForKey
 };
 
@@ -53,6 +54,16 @@ class INIReader {
 private:
 
 	/**
+	 * @brief The current line number in the file.
+	 */
+	int m_line_num;
+
+	/**
+	 * @brief Keeps track of whether or not the current line is inside a section.
+	 */
+	bool m_in_section{ false };
+
+	/**
 	 * @brief Keep track of any error that occurs during parsing.
 	 */
 	ErrorCode m_error{ ErrorCode::None };
@@ -66,13 +77,19 @@ private:
 	/**
 	 * @brief Names of all sections present in the given `.ini` file.
 	 */
-	std::set<const char *> m_sections;
+	std::set<const char *> m_section_names;
 
 	/**
 	 * @brief Removes any trailing whitespace (in place).
 	 * @param str The string to remove trailing whitespace from.
 	 */
 	void rstrip(std::string &str);
+
+	/**
+	 * @brief Parses a line of the file.
+	 * @param str The current line in the file.
+	 */
+	void parseLine(const std::string &str);
 
 public:
 
@@ -86,6 +103,12 @@ public:
 	 * @brief Destructor for the parser.
 	 */
 	~INIReader() = default;
+
+	/**
+	 * @brief Check if initialization of INIReader was successful.
+	 * @returns `true` if no error occurred parsing the file, `false` otherwise.
+	 */
+	const bool success() const;
 
 	/**
 	 * @brief Gets a string value from the configuration file.
@@ -142,10 +165,10 @@ public:
 	}
 
 	/**
-	 * @returns The sections present in the configuration file.
+	 * @returns The names of the sections present in the configuration file.
 	 */
-	std::set<const char *> getSections() const {
-		return m_sections;
+	std::set<const char *> getSectionNames() const {
+		return m_section_names;
 	}
 
 };
