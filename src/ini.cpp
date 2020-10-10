@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cctype>
-#include <iostream>
 #include <fstream>
 #include <regex>
 
@@ -129,13 +128,27 @@ bool INIReader::parsePair(const std::string &k, const std::string &v) {
 		removeComment(val);
 	}
 
-	std::cout << "-|" << m_curr_section << "|-  " << '(' << key << ',' << val << ")\n";
+	// create field
+	Field nextField;
+	nextField.key = key;
+	nextField.value = val;
 
-	if (m_lookup.find(m_curr_section) == m_lookup.end()) {
-		// section does not exist
+	// look for existing section
+	std::map<std::string, std::set<Field>>::iterator found = m_lookup.find(m_curr_section);
+
+	// section does not exist
+	if (found == m_lookup.end()) {
+		// create new set to hold all fields
+		std::set<Field> fields;
+		fields.insert(nextField);
+
+		// add field to map
+		m_lookup.insert(std::map<std::string, std::set<Field>>::value_type(m_curr_section, fields));
+		return true;
 	}
 
-	// section already exists
+	// section already exists, insert new field
+	found->second.insert(nextField);
 	return true;
 }
 
@@ -166,7 +179,6 @@ bool INIReader::parseLine(const std::string &str) {
 		return false;
 	}
 
-	std::cout << '[' << m_line_num << "]  ";
 	return parsePair(
 		str.substr(0, assignIdx),                            // key
 		str.substr(assignIdx + 1, str.length() - assignIdx)  // value
