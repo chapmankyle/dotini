@@ -1,0 +1,17 @@
+version: 2.0
+
+jobs:
+  build:
+    docker:
+      - image: gcc:9
+    steps:
+      - checkout
+      - run: apt-get update
+      - run: chmod +x ./run.sh
+      - run: ./run.sh
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - build
