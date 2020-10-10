@@ -18,7 +18,8 @@ enum class ErrorCode {
 	NoClosingBracketForSection,
 	EmptySection,
 	KeyOutsideSection,
-	NoValueForKey
+	NoValueForKey,
+	NoClosingQuotationForValue
 };
 
 /**
@@ -30,7 +31,8 @@ static const std::string errorStrings[]{
 	"No closing bracket found for section.",
 	"Section has no key-value pairs.",
 	"Key-value pair was found outside a section.",
-	"No value found for key."
+	"No value found for key.",
+	"No closing double quotes for value."
 };
 
 /**
@@ -111,10 +113,21 @@ private:
 	void rstrip(std::string &str);
 
 	/**
+	 * @brief Removes both leading and trailing whitespace (in place).
+	 * @param str The string to remove leading and trailing whitespace from.
+	 */
+	void trim(std::string &str);
+
+	/**
 	 * @returns `true` if there are sections with no key-value pairs, `false`
 	 * otherwise.
 	 */
 	bool hasEmptySections();
+
+	/**
+	 * @brief Removes comments from a string (in place).
+	 */
+	void removeComment(std::string &str);
 
 	/**
 	 * @brief Parses a section in a file.
@@ -124,18 +137,12 @@ private:
 	bool parseSection(const std::string &str);
 
 	/**
-	 * @brief Parses a key inside a section in a file.
-	 * @param str The string containing the key.
+	 * @brief Parses a key-value pair inside a section in a file.
+	 * @param k The string containing the key.
+	 * @param v The string containing the value.
 	 * @returns `true` if no errors occurred, `false` otherwise.
 	 */
-	bool parseKey(const std::string &str);
-
-	/**
-	 * @brief Parses a value inside a section in a file.
-	 * @param str The string containing the value.
-	 * @returns `true` if no errors occurred, `false` otherwise.
-	 */
-	bool parseValue(const std::string &str);
+	bool parsePair(const std::string &k, const std::string &v);
 
 	/**
 	 * @brief Parses a line of the file.
@@ -155,7 +162,7 @@ private:
 		const std::string &section,
 		const std::string &key,
 		const std::string &defValue
-	);
+	) const;
 
 public:
 
@@ -187,7 +194,7 @@ public:
 		const std::string &section,
 		const std::string &key,
 		const std::string &defValue
-	);
+	) const;
 
 	/**
 	 * @brief Gets an integer value from the configuration file.
@@ -200,7 +207,7 @@ public:
 		const std::string &section,
 		const std::string &key,
 		int defValue
-	);
+	) const;
 
 	/**
 	 * @brief Gets a long value from the configuration file.
@@ -213,7 +220,7 @@ public:
 		const std::string &section,
 		const std::string &key,
 		long defValue
-	);
+	) const;
 
 	/**
 	 * @brief Gets a double-precision floating-point value from the
@@ -227,7 +234,7 @@ public:
 		const std::string &section,
 		const std::string &key,
 		double defValue
-	);
+	) const;
 
 	/**
 	 * @brief Gets a boolean value from the configuration file.
@@ -240,12 +247,12 @@ public:
 		const std::string &section,
 		const std::string &key,
 		bool defValue
-	);
+	) const;
 
 	/**
 	 * @returns A string representation of the error that occurred.
 	 */
-	const std::string getError() {
+	const std::string getError() const {
 		return errorStrings[static_cast<int>(m_error)];
 	}
 
@@ -253,14 +260,14 @@ public:
 	 * @brief Gets the fields present in the given section.
 	 * @param section The name of the section to get the fields from.
 	 */
-	std::set<Field> getSectionFields(const std::string &section) const {
+	const std::set<Field> getSectionFields(const std::string &section) const {
 		return m_lookup.at(section);
 	}
 
 	/**
 	 * @returns The names of the sections present in the configuration file.
 	 */
-	std::set<std::string> getSectionNames() const {
+	const std::set<std::string> getSectionNames() const {
 		return m_section_names;
 	}
 
