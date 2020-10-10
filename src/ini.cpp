@@ -16,6 +16,12 @@ void INIReader::rstrip(std::string &str) {
 }
 
 
+void INIReader::trim(std::string &str) {
+	lstrip(str);
+	rstrip(str);
+}
+
+
 bool INIReader::hasEmptySections() {
 	// no empty sections if map is empty
 	if (m_lookup.empty()) {
@@ -30,6 +36,33 @@ bool INIReader::hasEmptySections() {
 	}
 
 	return false;
+}
+
+
+void INIReader::removeComment(std::string &str) {
+	const std::string s(START_COMMENT_PREFIXES);
+	char commentChar;
+	std::size_t commentIdx;
+
+	bool commentFound{ false };
+	for (const auto &c : s) {
+		commentIdx = str.find(c);
+
+		if (commentIdx != std::string::npos) {
+			commentFound = true;
+			commentChar = c;
+			break;
+		}
+	}
+
+	// no comment in string
+	if (!commentFound) {
+		return;
+	}
+
+	// found comment
+	str = str.substr(0, commentIdx);
+	rstrip(str);
 }
 
 
@@ -61,7 +94,7 @@ bool INIReader::parseSection(const std::string &str) {
 }
 
 
-bool INIReader::parseKey(const std::string &str) {
+bool INIReader::parsePair(const std::string &k, const std::string &v) {
 	// no key-value pair allowed outside section
 	if (!m_in_section) {
 		m_error = ErrorCode::KeyOutsideSection;
@@ -69,35 +102,40 @@ bool INIReader::parseKey(const std::string &str) {
 	}
 
 	// copy initialize to not affect original string
-	std::string key = str;
-	rstrip(key);
+	std::string key = k;
+	std::string val = v;
 
-	std::cout << "(" << key << ",";
-	return true;
-}
+	// strip all whitespace
+	trim(key);
+	trim(val);
 
-
-bool INIReader::parseValue(const std::string &str) {
-	// no key-value pair allowed outside section
-	if (!m_in_section) {
-		m_error = ErrorCode::KeyOutsideSection;
-		return false;
-	}
-
-	// copy initialize to not affect original string
-	std::string val = str;
-
-	// strip leading and trailing whitespace
-	lstrip(val);
-	rstrip(val);
-
-	// no corresponding value for defined key
 	if (val.empty()) {
 		m_error = ErrorCode::NoValueForKey;
 		return false;
 	}
 
-	std::cout << val << ")\n";
+	// value is a string
+	if (val.at(0) == '"') {
+		const std::size_t endIdx = val.rfind('"');
+
+		if (endIdx == std::string::npos || endIdx == 0) {
+			m_error = ErrorCode::NoClosingQuotationForValue;
+			return false;
+		}
+
+		val = val.substr(1, endIdx - 1);
+		rstrip(val);
+	} else {
+		removeComment(val);
+	}
+
+	std::cout << "-|" << m_curr_section << "|-  " << '(' << key << ',' << val << ")\n";
+
+	if (m_lookup.find(m_curr_section) == m_lookup.end()) {
+		// section does not exist
+	}
+
+	// section already exists
 	return true;
 }
 
@@ -129,10 +167,10 @@ bool INIReader::parseLine(const std::string &str) {
 	}
 
 	std::cout << '[' << m_line_num << "]  ";
-	bool validKey = parseKey(str.substr(0, assignIdx));
-	bool validValue = parseValue(str.substr(assignIdx + 1, str.length() - assignIdx));
-
-	return validKey && validValue;
+	return parsePair(
+		str.substr(0, assignIdx),                            // key
+		str.substr(assignIdx + 1, str.length() - assignIdx)  // value
+	);
 }
 
 
@@ -140,9 +178,9 @@ const std::string INIReader::get(
 	const std::string &section,
 	const std::string &key,
 	const std::string &defValue
-) {
+) const {
 	// no section exists
-	if (m_lookup.count(section) < 1) {
+	if (m_lookup.find(section) == m_lookup.end()) {
 		return defValue;
 	}
 
@@ -197,7 +235,7 @@ const std::string INIReader::getString(
 	const std::string &section,
 	const std::string &key,
 	const std::string &defValue
-) {
+) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : str;
 }
@@ -207,7 +245,7 @@ const int INIReader::getInt(
 	const std::string &section,
 	const std::string &key,
 	int defValue
-) {
+) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : std::stoi(str);
 }
@@ -217,7 +255,7 @@ const long INIReader::getLong(
 	const std::string &section,
 	const std::string &key,
 	long defValue
-) {
+) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : std::stol(str);
 }
@@ -227,7 +265,7 @@ const double INIReader::getDouble(
 	const std::string &section,
 	const std::string &key,
 	double defValue
-) {
+) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : std::stod(str);
 }
@@ -237,7 +275,7 @@ const bool INIReader::getBool(
 	const std::string &section,
 	const std::string &key,
 	bool defValue
-) {
+) const {
 	std::string str = get(section, key, "");
 	if (str.empty()) {
 		return defValue;
