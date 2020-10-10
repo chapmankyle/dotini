@@ -256,7 +256,7 @@ const std::string INIReader::getString(
 const int INIReader::getInt(
 	const std::string &section,
 	const std::string &key,
-	int defValue
+	const int defValue
 ) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : std::stoi(str);
@@ -266,7 +266,7 @@ const int INIReader::getInt(
 const long INIReader::getLong(
 	const std::string &section,
 	const std::string &key,
-	long defValue
+	const long defValue
 ) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : std::stol(str);
@@ -276,7 +276,7 @@ const long INIReader::getLong(
 const double INIReader::getDouble(
 	const std::string &section,
 	const std::string &key,
-	double defValue
+	const double defValue
 ) const {
 	const std::string str = get(section, key, "");
 	return str.empty() ? defValue : std::stod(str);
@@ -286,7 +286,7 @@ const double INIReader::getDouble(
 const bool INIReader::getBool(
 	const std::string &section,
 	const std::string &key,
-	bool defValue
+	const bool defValue
 ) const {
 	std::string str = get(section, key, "");
 	if (str.empty()) {

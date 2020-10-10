@@ -236,7 +236,7 @@ public:
 	const int getInt(
 		const std::string &section,
 		const std::string &key,
-		int defValue
+		const int defValue
 	) const;
 
 	/**
@@ -249,7 +249,7 @@ public:
 	const long getLong(
 		const std::string &section,
 		const std::string &key,
-		long defValue
+		const long defValue
 	) const;
 
 	/**
@@ -263,7 +263,7 @@ public:
 	const double getDouble(
 		const std::string &section,
 		const std::string &key,
-		double defValue
+		const double defValue
 	) const;
 
 	/**
@@ -276,7 +276,7 @@ public:
 	const bool getBool(
 		const std::string &section,
 		const std::string &key,
-		bool defValue
+		const bool defValue
 	) const;
 
 	/**
